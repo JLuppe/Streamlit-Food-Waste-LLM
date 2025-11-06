@@ -75,7 +75,7 @@ def get_embedding_function():
     aws_access_key = st.secrets["AWS_AWS_ACCESS_KEY_ID"]
     aws_secret_key = st.secrets["AWS_SECRET_ACCESS_KEY"]
     embeddings = BedrockEmbeddings(
-        access_key=aws_access_key,
-        secret_key=aws_secret_key,
+        aws_access_key_id=aws_access_key,
+        aws_secret_access_key=aws_secret_key,
     )
     return embeddings

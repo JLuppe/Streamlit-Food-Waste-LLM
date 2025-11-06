@@ -81,6 +81,6 @@ bedrock_client = boto3.client(
 def get_embedding_function():
     embeddings = BedrockEmbeddings(
     client=bedrock_client,
-    model_id="amazon.titan-embed-text-v1"
+    model_id="amazon.nova-2-multimodal-embeddings-v1:0"
     )
     return embeddings

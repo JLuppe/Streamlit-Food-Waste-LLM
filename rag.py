@@ -3,6 +3,7 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_aws import BedrockEmbeddings
 from langchain_chroma.vectorstores import Chroma
 from langchain_classic.schema import Document
+import streamlit as st
 
 DATA_PATH = "data"
 CHROMA_PATH = "chroma"
@@ -71,5 +72,10 @@ def calculate_chunk_ids(chunks: list[Document]):
 
 
 def get_embedding_function():
-    embeddings = BedrockEmbeddings()
+    aws_access_key = st.secrets["AWS_AWS_ACCESS_KEY_ID"]
+    aws_secret_key = st.secrets["AWS_SECRET_ACCESS_KEY"]
+    embeddings = BedrockEmbeddings(BedrockEmbeddings(
+        access_key=aws_access_key,
+        secret_key=aws_secret_key
+    ))
     return embeddings

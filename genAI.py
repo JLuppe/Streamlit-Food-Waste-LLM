@@ -3,10 +3,10 @@ from dotenv import load_dotenv
 import streamlit as st
 
 # load environment variables from .env file (api key)
-load_dotenv()
 
+api_key = st.secrets["API_KEY"]
 # The client gets the API key from the environment variable `GEMINI_API_KEY`.
-client = genai.Client()
+client = genai.Client(api_key=api_key)
 
 def get_response(conversation, text, context):
     try:

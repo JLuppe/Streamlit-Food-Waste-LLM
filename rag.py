@@ -72,10 +72,10 @@ def calculate_chunk_ids(chunks: list[Document]):
 
 
 def get_embedding_function():
-    aws_access_key = st.secrets["AWS_ACCESS_KEY_ID"]
+    aws_access_key = st.secrets["AWS_AWS_ACCESS_KEY_ID"]
     aws_secret_key = st.secrets["AWS_SECRET_ACCESS_KEY"]
-    embeddings = BedrockEmbeddings(BedrockEmbeddings(
+    embeddings = BedrockEmbeddings(
         access_key=aws_access_key,
-        secret_key=aws_secret_key
-    ))
+        secret_key=aws_secret_key,
+    )
     return embeddings

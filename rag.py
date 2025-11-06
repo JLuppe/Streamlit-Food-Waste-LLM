@@ -4,6 +4,7 @@ from langchain_aws import BedrockEmbeddings
 from langchain_chroma.vectorstores import Chroma
 from langchain_classic.schema import Document
 import streamlit as st
+import boto3
 
 DATA_PATH = "data"
 CHROMA_PATH = "chroma"
@@ -70,14 +71,14 @@ def calculate_chunk_ids(chunks: list[Document]):
         chunk.metadata["id"] = chunk_id
     return chunks
 
+session = boto3.Session(
+    aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+    aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
+    region_name="us-east-2"
+)
 
 def get_embedding_function():
-    aws_access_key = st.secrets["AWS_ACCESS_KEY_ID"]
-    aws_secret_key = st.secrets["AWS_SECRET_ACCESS_KEY"]
-    embeddings = BedrockEmbeddings(
-        aws_access_key_id=aws_access_key,
-        aws_secret_access_key=aws_secret_key,
-        region_name = "us-east-2",
-        model_id="stability.stable-fast-upscale-v1:0"
-    )
-    return embeddings
+    # embeddings = BedrockEmbeddings()
+    # return embeddings
+    bedrock_client = session.client("bedrock-runtime")
+    return bedrock_client

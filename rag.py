@@ -78,6 +78,6 @@ def get_embedding_function():
         aws_access_key_id=aws_access_key,
         aws_secret_access_key=aws_secret_key,
         region_name = "us-east-2",
-        model_id="amazon.titan-embed-text-v1"
+        model_id="stability.stable-fast-upscale-v1:0"
     )
     return embeddings

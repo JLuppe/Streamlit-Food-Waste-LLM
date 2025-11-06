@@ -71,14 +71,16 @@ def calculate_chunk_ids(chunks: list[Document]):
         chunk.metadata["id"] = chunk_id
     return chunks
 
-session = boto3.Session(
+bedrock_client = boto3.client(
+    "bedrock-runtime",
+    region_name="us-east-2",
     aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-    aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"],
-    region_name="us-east-2"
+    aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
 )
 
 def get_embedding_function():
-    # embeddings = BedrockEmbeddings()
-    # return embeddings
-    bedrock_client = session.client("bedrock-runtime")
-    return bedrock_client
+    embeddings = BedrockEmbeddings(
+    client=bedrock_client,
+    model_id="amazon.titan-embed-text-v1"
+    )
+    return embeddings

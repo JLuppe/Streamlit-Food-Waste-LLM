@@ -9,8 +9,8 @@ CHROMA_PATH = "chroma"
 
 # @st.cache_data
 
-st.title("Food Waste GenAI")
-st.set_page_config(layout="wide")
+st.title("AI Food Waste Insights", width="stretch")
+st.set_page_config(page_title = "Food Waste Insights", layout="centered")
 
 if "conversation" not in st.session_state:
     st.session_state["conversation"] = ""   # record of the entire conversation
@@ -56,9 +56,9 @@ if user_question:
         db = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embedding_function()) # gets the chunk vectors
 
         results = db.similarity_search_with_score(user_question, k=5) # retrieve the top 5 chunks that are relevant to user_question
-        st.info("Most similar result: " + str(results[0][1]))
-        st.info("Second most similar result: " + str(results[1][1]))
-        st.info("Third most similar result: " + str(results[2][1]))
+        # st.info("Most similar result: " + str(results[0][1]))
+        # st.info("Second most similar result: " + str(results[1][1]))
+        # st.info("Third most similar result: " + str(results[2][1]))
         threshold = 340
         filtered_results = [(doc, score) for doc, score in results if score <= threshold]
 
@@ -70,11 +70,14 @@ if user_question:
         response = get_response(st.session_state["conversation"], user_question, context_text)
 
         sources = [doc.metadata.get("id", None) for doc, _score in filtered_results]
+        # for doc in filtered_results:
+            # st.info(doc[0].metadata)                                                                  # to see page number, and other metdata 
+        
 
         st.session_state["conversation"] += "\nYou: " + response
         sources_str = ""
         for source in sources:
-            sources_str += ("\n" + source)
+            sources_str += (" || " + source)
         st.session_state["assisstant_history"].append(response + "\n" + sources_str)
         
 
@@ -97,6 +100,9 @@ with st.sidebar:
         i += 1
     uploaded_file = st.file_uploader("Upload File")
     if (uploaded_file):
+        # st.button(file, key=i)
+        st.write(file)
+        i += 1
         with open(os.path.join("data", uploaded_file.name), "wb") as f:
             f.write(uploaded_file.getvalue())
     st.button("Reset Chat History", on_click = reset_conversation)

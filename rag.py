@@ -73,7 +73,7 @@ def calculate_chunk_ids(chunks: list[Document]):
 
 bedrock_client = boto3.client(
     "bedrock-runtime",
-    region_name="us-east-2",
+    region_name="us-west-2",
     aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
     aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
 )
@@ -81,6 +81,6 @@ bedrock_client = boto3.client(
 def get_embedding_function():
     embeddings = BedrockEmbeddings(
     client=bedrock_client,
-    model_id="amazon.titan-embed-text-v2:0" # INFERENCE MODEL THAT CONTAINS THIS MODEL
+    model_id="amazon.titan-embed-text-v1" # INFERENCE MODEL THAT CONTAINS THIS MODEL
     )
     return embeddings

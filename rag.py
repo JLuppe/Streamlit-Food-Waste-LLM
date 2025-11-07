@@ -81,6 +81,6 @@ bedrock_client = boto3.client(
 def get_embedding_function():
     embeddings = BedrockEmbeddings(
     client=bedrock_client,
-    model_id="amazon.nova-lite-v1:0"
+    model_id="us.anthropic.claude-3-haiku-20240307-v1:0" # INFERENCE MODEL THAT CONTAINS THIS MODEL
     )
     return embeddings

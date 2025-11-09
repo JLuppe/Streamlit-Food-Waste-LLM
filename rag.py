@@ -11,7 +11,11 @@ CHROMA_PATH = "chroma"
 
 def handle_files():
     documents = load_documents()
-    chunks = split_files(documents)
+    chunks = create_chunks(documents)
+    add_to_chroma(chunks)
+
+def handle_uploaded_files(documents):
+    chunks = create_chunks(documents)
     add_to_chroma(chunks)
     
 
@@ -20,7 +24,7 @@ def load_documents():
     return document_loader.load()
 
 
-def split_files(documents: list[Document]):
+def create_chunks(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size = 500,
                                                    chunk_overlap = 80,
                                                    length_function = len,

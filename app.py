@@ -63,11 +63,11 @@ if user_question:
             st.error(f"Something went wrong: {e}")
 
 # Files that come standard
-st.sidebar.title("Foundational Knowledge Files")
-file_container = st.sidebar.container(key="files")
-filestr_in_data = os.listdir(DATA_PATH)
-for file in filestr_in_data:
-    file_container.write(file)
+# st.sidebar.title("Foundational Knowledge Files")
+# file_container = st.sidebar.container(key="files")
+# filestr_in_data = os.listdir(DATA_PATH)
+# for file in filestr_in_data:
+#     file_container.write(file)
 
 # Files that are uploaded in the user session
 st.session_state["API_KEY"] = st.sidebar.text_input("User API Key")

@@ -16,7 +16,7 @@ if "API_KEY" not in st.session_state:
 if "rag_context" not in st.session_state:
     st.session_state["rag_context"] = ""
 if "chunks_str" not in st.session_state:
-    st.session_state["chunks_str"] = []             # list of strings
+    st.session_state["chunks_str"] = [] # list of chunks
 if "chunk_tuples" not in st.session_state:
     st.session_state["chunk_tuples"] = []
 

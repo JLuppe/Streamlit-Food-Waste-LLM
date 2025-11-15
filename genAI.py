@@ -1,4 +1,5 @@
 import os
+import tempfile
 import numpy as np
 import streamlit as st
 from google import genai
@@ -40,27 +41,46 @@ You are a helpful, truthful assistant.
         st.error(f"API error: {e}")
         return "Fail"
 
+MAX_BATCH = 25
+
 def get_embeddings(chunks: list[str], task_type: str) -> np.ndarray:
     client = genai.Client(api_key=st.session_state["API_KEY"])
-    resp = client.models.embed_content(
-        model="gemini-embedding-001",
-        contents=chunks,
-        config=types.EmbedContentConfig(task_type=task_type),
-    )
-    return np.vstack([np.array(e.values) for e in resp.embeddings])
+    all_embs: list[np.ndarray] = []
 
-def rank_chunks_for_question(chunks: list[str], question: str, top_k: int = 5) -> list[tuple[str, float]]:    # chunk text, similarity score to question
+    for start in range(0, len(chunks), MAX_BATCH):
+        batch = chunks[start:start + MAX_BATCH]
+        resp = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=batch,
+            config=types.EmbedContentConfig(task_type=task_type),
+        )
+        all_embs.extend(np.array(e.values) for e in resp.embeddings)
+
+    return np.vstack(all_embs)
+
+
+def rank_chunks_for_question(chunks: list[str], question: str, top_k: int = 5) -> list[tuple[str, float]]:
     try:
-        chunk_embeddings = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")             # vector embeddings for files
-        q_emb = get_embeddings([question], "RETRIEVAL_QUERY")[0].reshape(1, -1)     # vector embedding for user question
+        chunk_embeddings = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")
+        q_emb = get_embeddings([question], "RETRIEVAL_QUERY")[0].reshape(1, -1)
+
         sims = cosine_similarity(q_emb, chunk_embeddings)[0]
         top_idx = np.argsort(sims)[::-1][:top_k]
-        return [(chunks[i], float(sims[i])) for i in top_idx] 
-    except:
-        print("no chunks")
+
+        result: list[tuple[str, float]] = []
+        for i in top_idx:
+            pair = (chunks[i], float(sims[i]))
+            result.append(pair)
+            st.info(pair[0])   # log the chunk text (or f"{pair[1]:.3f} – {pair[0][:200]}")
+        return result
+    except Exception as e:
+        st.error(f"Error ranking chunks: {e}")
+        print(e)
+        return []
         
 def create_chunks(documents: list[Document]) -> list[str]:
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 500,
+    
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000,
                                                    chunk_overlap = 80,
                                                    length_function = len,
                                                    is_separator_regex = False)
@@ -68,17 +88,22 @@ def create_chunks(documents: list[Document]) -> list[str]:
     chunk_list = []
     for chunk in doc_chunks:
         chunk_list.append(chunk.page_content)
+    st.info("Chunk list size: " + str(len(chunk_list)))
     return chunk_list
 
 def convert_doc(uploaded_files: list[UploadedFile]):
-    docs = []                                                                      
+    docs = []
     for file in uploaded_files:
-        with open(file.name, "wb") as f:
-            f.write(file.getvalue())
-        loader = PyPDFLoader(file.name)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
+            tmpfile.write(file.getbuffer())
+            tmp_filename = tmpfile.name
+
+        loader = PyPDFLoader(tmp_filename)
         documents = loader.load()
         docs.extend(documents)
-        os.remove(file.name)
+
+        os.remove(tmp_filename)
+
     return create_chunks(docs)
 
 

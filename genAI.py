@@ -71,7 +71,6 @@ def rank_chunks_for_question(chunks: list[str], question: str, top_k: int = 5) -
         for i in top_idx:
             pair = (chunks[i], float(sims[i]))
             result.append(pair)
-            # st.info(pair[0])   # log the chunk text (or f"{pair[1]:.3f} – {pair[0][:200]}")
         return result
     except Exception as e:
         st.error(f"Error ranking chunks: {e}")
@@ -88,7 +87,6 @@ def create_chunks(documents: list[Document]) -> list[str]:
     chunk_list = []
     for chunk in doc_chunks:
         chunk_list.append(chunk.page_content)
-    # st.info("Chunk list size: " + str(len(chunk_list)))
     return chunk_list
 
 def convert_doc(uploaded_files: list[UploadedFile]):

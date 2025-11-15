@@ -48,6 +48,7 @@ if user_question:
                      st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["chunks_str"], user_question, 5)
                      tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"]      # list of tuples (str, float)
                      if (tuples):
+                        st.info("Using File Context")
                         for tuple in tuples:
                             st.session_state["rag_context"] = st.session_state["rag_context"] + tuple[0]
                  

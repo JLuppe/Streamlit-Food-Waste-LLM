@@ -5,7 +5,7 @@ from genAI import get_response, convert_doc, rank_chunks_for_question
 
 DATA_PATH = "data"
 
-st.title("AI Food Waste Insights", width="stretch")
+st.title("AI Food Waste Insights Tool", width="stretch")
 st.set_page_config(page_title = "Food Waste Insights Tool", layout="centered")
 
 if "conversation" not in st.session_state:

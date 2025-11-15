@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from genAI import get_response, convert_doc, rank_chunks_for_question
 

@@ -72,7 +72,7 @@ if user_question:
 # Files that are uploaded in the user session
 st.session_state["API_KEY"] = st.sidebar.text_input("User API Key")
 st.sidebar.title("Your Files")
-st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader("Upload File", accept_multiple_files=True)
+st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader("Upload File", accept_multiple_files=True, type="pdf")
 if st.session_state["sidebar_uploaded_files"]:
     st.session_state["chunks_str"] = convert_doc(st.session_state["sidebar_uploaded_files"])
 st.sidebar.button("Reset Chat History", on_click = reset_conversation)

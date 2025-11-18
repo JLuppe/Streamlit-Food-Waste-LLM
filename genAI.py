@@ -77,7 +77,7 @@ def get_embeddings(chunks: list[Document], task_type: str) -> np.ndarray:
     return np.vstack(all_embs)
 
 
-def rank_chunks_for_question(chunksR: list[Document], question: str, top_k: int = 5) -> list[tuple[str, float]]:
+def rank_chunks_for_question(chunksR: list[Document], question: str, top_k: int = 10) -> list[tuple[str, float]]:
     try:
         cache: dict[str, np.ndarray] = st.session_state.get("embedding_cache", {})
 

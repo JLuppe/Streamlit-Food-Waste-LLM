@@ -1,6 +1,7 @@
+import os
+import pickle
 import streamlit as st
 from genAI import get_response, convert_doc, rank_chunks_for_question
-
 
 DATA_PATH = "data"
 
@@ -15,14 +16,31 @@ if "API_KEY" not in st.session_state:
     st.session_state["API_KEY"] = "" # user api key
 if "rag_context" not in st.session_state:
     st.session_state["rag_context"] = ""
-if "chunks_str" not in st.session_state:
-    st.session_state["chunks_str"] = [] # list of chunks
+if "chunk_documents" not in st.session_state:
+    st.session_state["chunk_documents"] = [] # list of chunk documents
 if "chunk_tuples" not in st.session_state:
     st.session_state["chunk_tuples"] = []
+
+
+# embedding_cache is a dictionary with chunk string as keys and embeddings as values
+
+EMBEDDING_CACHE_PATH = "permanent_embeddings/embeddings.pkl"
+
+def init_embedding_cache():
+    if "embedding_cache" not in st.session_state:
+        if os.path.exists(EMBEDDING_CACHE_PATH):
+            with open(EMBEDDING_CACHE_PATH, "rb") as f:
+                st.session_state["embedding_cache"] = pickle.load(f)       # pickle files is a dict with {key: chunk str, value: embedding vector}
+        else:
+            st.session_state["embedding_cache"] = {}
+
+init_embedding_cache()
 
 def reset_conversation():
     st.session_state["conversation"] = ""
     st.session_state["conversation_list"] = []
+    st.session_state["embedding_cache"] = {}
+    init_embedding_cache()
 
 chat_container = st.container()
 def print_conversation():
@@ -34,7 +52,6 @@ def print_conversation():
             else:
                 st.chat_message("user").write(st.session_state["conversation_list"][i])
         
- # convert UploadedFile to Documents to be added to chroma db
 
 user_question = st.chat_input("What do you want to know?")
 if user_question:
@@ -44,9 +61,10 @@ if user_question:
             if (st.session_state["API_KEY"] != ""):
                  st.session_state["conversation_list"].append(user_question)
                  st.session_state["conversation"] += "\nUser: " + user_question
-                 if (st.session_state["chunks_str"] != ""):
-                     st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["chunks_str"], user_question, 5)
-                     tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"]      # list of tuples (str, float)
+                 if (st.session_state["chunk_documents"] or st.session_state["embedding_cache"]):
+                    #  st.info("Embedding Cache Exists")
+                     st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["chunk_documents"], user_question, 5)
+                     tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"] 
                      if (tuples):
                         st.info("Using File Context")
                         for tuple in tuples:
@@ -74,7 +92,7 @@ st.session_state["API_KEY"] = st.sidebar.text_input("User API Key")
 st.sidebar.title("Your Files")
 st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader("Upload File", accept_multiple_files=True, type="pdf")
 if st.session_state["sidebar_uploaded_files"]:
-    st.session_state["chunks_str"] = convert_doc(st.session_state["sidebar_uploaded_files"])
+    st.session_state["chunk_documents"] = convert_doc(st.session_state["sidebar_uploaded_files"])
 st.sidebar.button("Reset Chat History", on_click = reset_conversation)
 
 print_conversation()

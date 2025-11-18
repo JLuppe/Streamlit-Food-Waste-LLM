@@ -41,55 +41,118 @@ You are a helpful, truthful assistant.
         st.error(f"API error: {e}")
         return "Fail"
 
+
+
 MAX_BATCH = 25
-
-def get_embeddings(chunks: list[str], task_type: str) -> np.ndarray:
+def get_embeddings(chunks: list[Document], task_type: str) -> np.ndarray:
     client = genai.Client(api_key=st.session_state["API_KEY"])
-    all_embs: list[np.ndarray] = []
 
-    for start in range(0, len(chunks), MAX_BATCH):
-        batch = chunks[start:start + MAX_BATCH]
+    if "embedding_cache" not in st.session_state:
+        st.session_state["embedding_cache"] = {}
+    cache: dict[str, np.ndarray] = st.session_state["embedding_cache"]
+
+    to_embed: list[str] = []
+    for doc in chunks:
+        page_content = doc.metadata["page_content"]
+        if page_content not in cache:
+            to_embed.append(page_content)
+
+    for start in range(0, len(to_embed), MAX_BATCH):
+        batch = to_embed[start:start + MAX_BATCH]
+        if not batch:
+            continue
+
         resp = client.models.embed_content(
             model="gemini-embedding-001",
             contents=batch,
             config=types.EmbedContentConfig(task_type=task_type),
         )
-        all_embs.extend(np.array(e.values) for e in resp.embeddings)
 
+        for page_content, e in zip(batch, resp.embeddings):
+            cache[page_content] = np.array(e.values, dtype=np.float32)
+
+    st.session_state["embedding_cache"] = cache
+
+    all_embs = [cache[doc.metadata["page_content"]] for doc in chunks]
     return np.vstack(all_embs)
 
 
-def rank_chunks_for_question(chunks: list[str], question: str, top_k: int = 5) -> list[tuple[str, float]]:
+def rank_chunks_for_question(chunksR: list[Document], question: str, top_k: int = 5) -> list[tuple[str, float]]:
     try:
-        chunk_embeddings = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")
-        q_emb = get_embeddings([question], "RETRIEVAL_QUERY")[0].reshape(1, -1)
+        cache: dict[str, np.ndarray] = st.session_state.get("embedding_cache", {})
 
+        texts: list[str] = []
+        emb_list: list[np.ndarray] = [] # list of embeddings
+
+        for text, emb in cache.items(): # look at each dict entry in cache, add chunk string and embeddings to respective lists
+            texts.append(text)
+            emb_list.append(emb)
+
+        if chunksR:                     
+            chunk_embs = get_embeddings(chunksR, "RETRIEVAL_DOCUMENT")  # if there are chunks passed as argument (dynamic), get their embeddings
+
+            for doc, emb in zip(chunksR, chunk_embs):
+                text = doc.metadata["page_content"]
+                if text not in cache:
+                    cache[text] = emb
+                    texts.append(text)
+                    emb_list.append(emb)
+
+            st.session_state["embedding_cache"] = cache
+
+        if not emb_list:
+            return []
+
+        chunk_embeddings = np.vstack(emb_list)  
+
+        q_emb = get_query_embedding([question], "RETRIEVAL_QUERY").reshape(1, -1)
         sims = cosine_similarity(q_emb, chunk_embeddings)[0]
+
         top_idx = np.argsort(sims)[::-1][:top_k]
 
         result: list[tuple[str, float]] = []
         for i in top_idx:
-            pair = (chunks[i], float(sims[i]))
-            result.append(pair)
+            # texts[i] corresponds to emb_list[i]
+            result.append((texts[i], float(sims[i])))
+
         return result
+
     except Exception as e:
         st.error(f"Error ranking chunks: {e}")
         print(e)
         return []
-        
-def create_chunks(documents: list[Document]) -> list[str]:
-    
+
+
+
+
+def get_query_embedding(question: str, task_type: str = "RETRIEVAL_QUERY") -> np.ndarray:
+    client = genai.Client(api_key=st.session_state["API_KEY"])
+    resp = client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=[question],
+        config=types.EmbedContentConfig(task_type=task_type),
+    )
+    return np.array(resp.embeddings[0].values, dtype=np.float32)
+
+
+
+
+def create_chunks(documents: list[Document]) -> list[Document]:         # list of documents in is split into document chunks (for metadata)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size = 3000,
                                                    chunk_overlap = 80,
                                                    length_function = len,
                                                    is_separator_regex = False)
     doc_chunks = text_splitter.split_documents(documents)
-    chunk_list = []
-    for chunk in doc_chunks:
-        chunk_list.append(chunk.page_content)
-    return chunk_list
+    for idx, chunk in enumerate(doc_chunks):
+        chunk.metadata["page_content"] = chunk.page_content
+    # st.info(doc_chunks[0].metadata)
+    return doc_chunks
 
-def convert_doc(uploaded_files: list[UploadedFile]):
+
+
+
+
+def convert_doc(uploaded_files: list[UploadedFile]) -> list[Document]:
     docs = []
     for file in uploaded_files:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:

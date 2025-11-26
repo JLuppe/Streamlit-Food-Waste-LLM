@@ -66,7 +66,6 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
         for text, emb in cache.items(): 
             texts.append(text)
             emb_list.append(emb)
-
         # updates cache with uploaded files
         update_cache(uploaded_chunks, texts, emb_list, cache)
 

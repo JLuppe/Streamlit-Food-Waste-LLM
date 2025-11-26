@@ -4,13 +4,14 @@ import streamlit as st
 from genAI import get_response
 from document_handle import convert_doc
 from embedding import rank_chunks_for_question
+from streamlit_pdf_viewer import pdf_viewer
 
 DATA_PATH = "data"
 
 # embedding_cache is a dictionary with chunk string as keys and embeddings as values
 EMBEDDING_CACHE_PATH = "permanent_embeddings/embeddings.pkl"
 
-st.title("AI Food Waste Insights Tool", width="stretch")
+
 st.set_page_config(page_title = "Food Waste Insights Tool", layout="centered")
 
 if "conversation" not in st.session_state:
@@ -44,6 +45,7 @@ def reset_conversation():
     st.session_state["conversation"] = ""
     st.session_state["conversation_list"] = []
     st.session_state["embedding_cache"] = {}
+    st.session_state["rag_context"] = ""
     init_embedding_cache()
 
 chat_container = st.container()
@@ -58,32 +60,37 @@ def print_conversation():
                 st.chat_message("assistant").write(st.session_state["conversation_list"][i])
             else:
                 st.chat_message("user").write(st.session_state["conversation_list"][i])
-        
+col1, col2 = st.columns(2) 
+user_question = st.chat_input("What do you want to know?")    
+with col1:
+    st.title("AI Food Waste Insights Tool", width="stretch")
+    st.set_page_config(layout="wide")
+    
+    if user_question:
+        files = []
+        with st.spinner("Generating Response..."):
+            try:
+                if (st.session_state["API_KEY"] != ""):
+                    st.session_state["conversation_list"].append(user_question)
+                    st.session_state["conversation"] += "\nUser: " + user_question
+                    if (st.session_state["uploaded_chunks"] or st.session_state["embedding_cache"]):
+                        st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["uploaded_chunks"], user_question, 5)
+                        tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"] 
+                        if (tuples):
+                            st.info("Using File Context")
+                            for tuple in tuples:
+                                st.session_state["rag_context"] = st.session_state["rag_context"] + tuple[0]
+                    
+                    st.session_state["response"] = get_response(st.session_state["conversation"], user_question, st.session_state["rag_context"])           # to see page number, and other metdata 
+                    st.session_state["conversation"] += "\nYou: " + st.session_state["response"]
+                    st.session_state["conversation_list"].append(st.session_state["response"])
+                else:
+                    st.info("Please input your API key")
 
-user_question = st.chat_input("What do you want to know?")
-if user_question:
-    files = []
-    with st.spinner("Generating Response..."):
-        try:
-            if (st.session_state["API_KEY"] != ""):
-                 st.session_state["conversation_list"].append(user_question)
-                 st.session_state["conversation"] += "\nUser: " + user_question
-                 if (st.session_state["uploaded_chunks"] or st.session_state["embedding_cache"]):
-                     st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["uploaded_chunks"], user_question, 5)
-                     tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"] 
-                     if (tuples):
-                        st.info("Using File Context")
-                        for tuple in tuples:
-                            st.session_state["rag_context"] = st.session_state["rag_context"] + tuple[0]
-                 
-                 st.session_state["response"] = get_response(st.session_state["conversation"], user_question, st.session_state["rag_context"])           # to see page number, and other metdata 
-                 st.session_state["conversation"] += "\nYou: " + st.session_state["response"]
-                 st.session_state["conversation_list"].append(st.session_state["response"])
-            else:
-                st.info("Please input your API key")
+            except Exception as e:
+                st.error(f"Something went wrong: {e}")
 
-        except Exception as e:
-            st.error(f"Something went wrong: {e}")
+
 
 # Files that come standard
 st.sidebar.title("Foundational Knowledge Files")
@@ -99,5 +106,20 @@ st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader("Upload Fi
 if st.session_state["sidebar_uploaded_files"]:
     st.session_state["uploaded_chunks"] = convert_doc(st.session_state["sidebar_uploaded_files"])
 st.sidebar.button("Reset Chat History", on_click = reset_conversation)
+
+
+# TODOs
+# 1. Create buttons to view specific uploaded pdf
+# 2. Make foundational knowledge viewable
+# 3. 
+with col2:  
+    st.title("Document Viewer")
+    st.set_page_config(layout="wide")
+    if st.session_state["sidebar_uploaded_files"]:
+        binary_data = st.session_state["sidebar_uploaded_files"][0].getvalue()
+        pdf_viewer(input=binary_data, height=800, width=800)
+    else:
+        st.text("No Documents Uploaded")
+
 
 print_conversation()

@@ -52,11 +52,15 @@ def get_query_embedding(question: str, task_type: str = "RETRIEVAL_QUERY") -> np
     )
     return np.array(resp.embeddings[0].values, dtype=np.float32)
 
+
+#   TODO: Error ranking chunks: all the input array dimensions except for the concatenation axis must match exactly, but along dimension 1, the array at index 0 has size 1 and the array at index 303 has size 3072
+#         Permanent embeddings
 #   FUNCTION:   Updates cache, ranks chunks
 #   RETURNS:    list[tuple[str, float]] returns top_k number of chunks that are most similar to question
-def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top_k: int = 10) -> list[tuple[str, float]]:
+def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top_k: int = 50) -> list[tuple[str, float]]:
     try:
         # Cached embeddings
+        # valid_embs = [emb for emb in st.session_state.get("embedding_cache", {}) if emb.shape[-1] == 3072 and emb.ndim == 2]
         cache: dict[str, np.ndarray] = st.session_state.get("embedding_cache", {})
         # str list from cache dict
         texts: list[str] = []
@@ -65,7 +69,9 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
         # look at each dict entry in cache, add chunk string and embeddings to respective lists
         for text, emb in cache.items(): 
             texts.append(text)
-            emb_list.append(emb)
+            emb = np.asarray(emb, dtype=np.float32)
+            if emb.ndim == 1 and emb.shape[0] == 3072:
+                emb_list.append(emb)
         # updates cache with uploaded files
         update_cache(uploaded_chunks, texts, emb_list, cache)
 
@@ -73,8 +79,11 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
         if not emb_list:
             return []
         
-        chunk_embeddings = np.vstack(emb_list)  
-        return get_chunk_similarity(question, chunk_embeddings, top_k, texts)
+        chunk_embeddings = np.vstack(emb_list)
+        similar_chunks = get_chunk_similarity(question, chunk_embeddings, top_k, texts)
+        # st.info(similar_chunks)
+        # st.info(len(similar_chunks))
+        return similar_chunks
     
     except Exception as e:
         st.error(f"Error ranking chunks: {e}")

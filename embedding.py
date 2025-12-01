@@ -87,7 +87,6 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
 #   RETURNS:    NONE
 def update_cache(chunks: list[Document], texts: list[str], emb_list: list[np.ndarray], cache: dict[str, np.ndarray]):
     if chunks:         
-        st.info("Chunks for uploaded files exist in update_cache")     
         chunk_embs = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")
         for doc, emb in zip(chunks, chunk_embs):
             text = doc.metadata["page_content"]

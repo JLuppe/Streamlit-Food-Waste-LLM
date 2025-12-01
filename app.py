@@ -102,7 +102,7 @@ with col1:
                         st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["uploaded_chunks"], user_question)
                         tuples: (list[tuple[str, float]]) = st.session_state["chunk_tuples"] 
                         if (tuples):
-                            st.info("Using File Context")
+                            # st.info("Using File Context")
                             for tuple in tuples:
                                 st.session_state["rag_context"] = st.session_state["rag_context"] + tuple[0]
                     st.session_state["response"] = get_response(st.session_state["conversation"], user_question, st.session_state["rag_context"])

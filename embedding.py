@@ -52,15 +52,11 @@ def get_query_embedding(question: str, task_type: str = "RETRIEVAL_QUERY") -> np
     )
     return np.array(resp.embeddings[0].values, dtype=np.float32)
 
-
-#   TODO: Error ranking chunks: all the input array dimensions except for the concatenation axis must match exactly, but along dimension 1, the array at index 0 has size 1 and the array at index 303 has size 3072
-#         Permanent embeddings
 #   FUNCTION:   Updates cache, ranks chunks
 #   RETURNS:    list[tuple[str, float]] returns top_k number of chunks that are most similar to question
-def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top_k: int = 50) -> list[tuple[str, float]]:
+def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top_k: int = 25) -> list[tuple[str, float]]:
     try:
         # Cached embeddings
-        # valid_embs = [emb for emb in st.session_state.get("embedding_cache", {}) if emb.shape[-1] == 3072 and emb.ndim == 2]
         cache: dict[str, np.ndarray] = st.session_state.get("embedding_cache", {})
         # str list from cache dict
         texts: list[str] = []
@@ -72,17 +68,25 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
             emb = np.asarray(emb, dtype=np.float32)
             if emb.ndim == 1 and emb.shape[0] == 3072:
                 emb_list.append(emb)
-        # updates cache with uploaded files
-        update_cache(uploaded_chunks, texts, emb_list, cache)
+        if uploaded_chunks:         
+            st.info("Chunks for uploaded files exist in update_cache")     
+            chunk_embs = get_embeddings(uploaded_chunks, "RETRIEVAL_DOCUMENT")
+            for doc, emb in zip(uploaded_chunks, chunk_embs):
+                text = doc.metadata["page_content"]
+                st.info(text)
+                cache[text] = emb
+                texts.append(text)
+                emb_list.append(emb)
 
+            st.session_state["embedding_cache"] = cache
+        # updates cache with uploaded files
+        # update_cache(uploaded_chunks, texts, emb_list, cache)
         # if there are no embeddings, return w/ nothing
         if not emb_list:
             return []
         
         chunk_embeddings = np.vstack(emb_list)
         similar_chunks = get_chunk_similarity(question, chunk_embeddings, top_k, texts)
-        # st.info(similar_chunks)
-        # st.info(len(similar_chunks))
         return similar_chunks
     
     except Exception as e:
@@ -93,7 +97,8 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
 #   FUNCTION:   Calculates uploaded file chunks and adds them to the cache
 #   RETURNS:    NONE
 def update_cache(chunks: list[Document], texts: list[str], emb_list: list[np.ndarray], cache: dict[str, np.ndarray]):
-    if chunks:                  
+    if chunks:         
+        st.info("Chunks for uploaded files exist in update_cache")     
         chunk_embs = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")
         for doc, emb in zip(chunks, chunk_embs):
             text = doc.metadata["page_content"]
@@ -105,7 +110,7 @@ def update_cache(chunks: list[Document], texts: list[str], emb_list: list[np.nda
         st.session_state["embedding_cache"] = cache
 
 
-#   FUNCTION:   Calculates the question embedding and returns the top 10 closest chunks that match w/ the query
+#   FUNCTION:   Calculates the question embedding and returns the top k closest chunks that match w/ the query
 #   RETURNS:    list[tuple[str, float]] where str is chunk text and float is similarity index
 def get_chunk_similarity(question: str, chunk_embeddings, top_k: int, texts:list):
         q_emb = get_query_embedding([question], "RETRIEVAL_QUERY").reshape(1, -1)

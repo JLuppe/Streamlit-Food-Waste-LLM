@@ -5,6 +5,7 @@ from genAI import get_response
 from document_handle import convert_doc
 from embedding import rank_chunks_for_question
 from streamlit_pdf_viewer import pdf_viewer
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 import glob
 
 DATA_PATH = "data"
@@ -63,7 +64,7 @@ def reset_conversation():
     init_embedding_cache()
 
 #   FUNCTION:   Sets binary data to the pdf of the button that use presses
-#   RETURNS:   N/A
+#   RETURNS:    N/A
 def set_ss_binary(file_name: str):
     pattern = os.path.join(DATA_PATH, '**', file_name)
     matches = glob.glob(pattern, recursive=True)
@@ -73,7 +74,14 @@ def set_ss_binary(file_name: str):
             binary_data = f.read()
             st.session_state["pdf_binary"] = binary_data
 
+def set_ss_binary_uploaded_file(file: UploadedFile):
+    file_binary = file.read()
+    st.session_state["pdf_binary"] = file_binary
 
+def generate_uploaded_file_buttons():
+    uploadedFiles: list[UploadedFile] = st.session_state["sidebar_uploaded_files"]
+    for file in uploadedFiles:
+        st.sidebar.button(label= file.name, key=file.name, on_click=set_ss_binary_uploaded_file, args=(file,))
 
 col1, col2 = st.columns(2) 
 
@@ -121,13 +129,13 @@ st.sidebar.title("Your Files")
 st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader("Upload File", accept_multiple_files=True, type="pdf")
 if st.session_state["sidebar_uploaded_files"]:
     st.session_state["uploaded_chunks"] = convert_doc(st.session_state["sidebar_uploaded_files"])
+    generate_uploaded_file_buttons()
+
 st.sidebar.button("Reset Chat History", on_click = reset_conversation)
 
 
 # TODOs
 # 1. Create buttons to view specific uploaded pdf
-# 2. Make foundational knowledge viewable
-# 3. 
 with col2:  
     st.title("Document Viewer")
     st.set_page_config(layout="wide")

@@ -68,19 +68,8 @@ def rank_chunks_for_question(uploaded_chunks: list[Document], question: str, top
             emb = np.asarray(emb, dtype=np.float32)
             if emb.ndim == 1 and emb.shape[0] == 3072:
                 emb_list.append(emb)
-        if uploaded_chunks:         
-            st.info("Chunks for uploaded files exist in update_cache")     
-            chunk_embs = get_embeddings(uploaded_chunks, "RETRIEVAL_DOCUMENT")
-            for doc, emb in zip(uploaded_chunks, chunk_embs):
-                text = doc.metadata["page_content"]
-                st.info(text)
-                cache[text] = emb
-                texts.append(text)
-                emb_list.append(emb)
-
-            st.session_state["embedding_cache"] = cache
         # updates cache with uploaded files
-        # update_cache(uploaded_chunks, texts, emb_list, cache)
+        update_cache(uploaded_chunks, texts, emb_list, cache)
         # if there are no embeddings, return w/ nothing
         if not emb_list:
             return []
@@ -102,10 +91,9 @@ def update_cache(chunks: list[Document], texts: list[str], emb_list: list[np.nda
         chunk_embs = get_embeddings(chunks, "RETRIEVAL_DOCUMENT")
         for doc, emb in zip(chunks, chunk_embs):
             text = doc.metadata["page_content"]
-            if text not in cache:
-                cache[text] = emb
-                texts.append(text)
-                emb_list.append(emb)
+            cache[text] = emb
+            texts.append(text)
+            emb_list.append(emb)
 
         st.session_state["embedding_cache"] = cache
 

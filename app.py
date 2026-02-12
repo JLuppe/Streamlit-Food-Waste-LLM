@@ -5,7 +5,6 @@ from sidebar import load_sidebar
 from embedding import init_embedding_cache
 from pdf import document_viewer, filter_and_highlight_foundational_knowledge
 from st_click_detector import click_detector
-import markdown
 
 DATA_PATH = "data"
 EMBEDDING_CACHE_DIR = "permanent_embeddings"
@@ -42,20 +41,35 @@ if "response" not in st.session_state:
 # Embedding cache: dict[chunk_str, np.ndarray] -> Want to change to dict[file_name, dict[chunk_str, np.ndarray]]
 if "embedding_cache" not in st.session_state:
         st.session_state["embedding_cache"] = {}
+if "viewed_file_string" not in st.session_state:
+        st.session_state["viewed_file_string"] = None
+if "document_viewer" not in st.session_state:
+    st.session_state["document_viewer"] = None
+if "viewed_file_path" not  in st.session_state:
+    st.session_state["viewed_file_path"] = ""
+if "viewed_file_html" not  in st.session_state:
+    st.session_state["viewed_file_html"] = None
+
+if "info_box_counter" not in st.session_state:
+    st.session_state["info_box_counter"] = 100
+
+if "uploaded_files_embeddings" not in st.session_state:
+    st.session_state["uploaded_files_embeddings"] = []
 
 init_embedding_cache()
 load_sidebar()
 
 
 col1, col2 = st.columns(2) 
-# PDF VIEWER
-with col2:
-    document_viewer()
+
+
+# chat_col, search_col = st.columns(2)
 # CHAT
-user_question = st.chat_input("What do you want to know?", width=925)
+user_question = st.chat_input("What do you want to know?", width=925, )
+# search_term = search_col.chat_input("Search for text:", width=925, )
 with col1:
     st.title("AI Food Waste Insights Tool", width="stretch")
-    chat_container = st.container(height=950, key="chat_container")
+    chat_container = st.container(height=950, key="chat_container", vertical_alignment="distribute")
     st.session_state["chat_container"] = chat_container
     st.session_state["rag_context"] = ""
     if user_question:
@@ -67,10 +81,10 @@ with col1:
                     st.session_state["conversation"] += "\nUser: " + user_question
                     st.session_state["rag_sources"] = []
                     st.session_state["rag_context"] = ""
-                    tuples = None
                     st.session_state["chunk_tuples"] = []
-                    if (st.session_state["uploaded_chunks"] or st.session_state["files_in_context"]):
-                        st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["uploaded_chunks"], user_question)
+                    if (st.session_state["uploaded_files_embeddings"] or st.session_state["files_in_context"]): # JUST CHANGED TO UPLOADED_FILES_EMBEDDINGS
+                        # TODO: clean up how you get tuples (change rank_chunks_for_question)
+                        st.session_state["chunk_tuples"] = rank_chunks_for_question(st.session_state["uploaded_files_embeddings"], user_question)
                         tuples: (list[tuple[str, str, str]]) = st.session_state["chunk_tuples"]
                         # TUPLE IS (file_name, chunk_str, chunk_text)
                         if (tuples):
@@ -93,31 +107,50 @@ with col1:
             except Exception as e:
                 st.error(f"Something went wrong: {e}")
 
+# PDF VIEWER
+with col2:
+    document_viewer()
+
+
+#   FUNCTION:   When button clicked, write chunk data as HTML into a separate container.
+#   RETUNRS:    N/A
+def handle_source_click(clicked):
+    try:
+        file_name = st.session_state["chunk_map"].get(clicked)[0]
+        chunk_str = st.session_state["chunk_map"].get(clicked)[1]
+        # filter_and_highlight_foundational_knowledge(file_name)
+        if chunk_str:
+            info = st.container(border=True, key=st.session_state["info_box_counter"])
+            st.session_state["info_box_counter"] += 1
+            info.html(f"<div style='color: white'><b>Context ({clicked})</b> <br />\n\n {chunk_str} \n\n <br /><b>Source File:</b> {file_name}</div>")
+    except Exception as e:
+        st.info("Error in handle_source_click() in app.py: {e}")
+
+def add_source_buttons_to_container(container):
+    for file in set(st.session_state["rag_sources"]):
+        container.button(("Source: " + file), key=file, on_click=filter_and_highlight_foundational_knowledge, args=(file,))
+
 #   FUNCTION:   prints the conversation, and adds source files at the end
 #   RETURNS:    N/A
 def print_conversation():
-    chat_container.empty()
-    for i in range(len(st.session_state["conversation_list"])):
-        with chat_container:
-            if i % 2 == 0: # user
-                with st.chat_message("user"):
-                    st.write(st.session_state["conversation_list"][i])
-            else:
-                with st.chat_message("assistant"):
-                    if st.session_state["files_in_context"]:
-                        temp_key = f"{st.session_state['response_counter']}_{i}"
-                        clicked = click_detector(st.session_state["conversation_list"][i], key=temp_key)
-                        if clicked:
-                            file_name = st.session_state["chunk_map"].get(clicked)[0]
-                            chunk_str = st.session_state["chunk_map"].get(clicked)[1]
-                            if chunk_str:
-                                st.info(f"**Context ({clicked})** \n\n {chunk_str} \n\n **Source File:** {file_name}")
-                    else:
-                        st.write(st.session_state["conversation_list"][i])
-    for file in set(st.session_state["rag_sources"]):
-        chat_container.button(("Source: " + file), key=file, on_click=filter_and_highlight_foundational_knowledge, args=(file,))
+    try:
+        chat_container.empty()
+        for i in range(len(st.session_state["conversation_list"])):
+            with chat_container:
+                if i % 2 == 0: # user
+                    with st.chat_message("user"):
+                        st.html(st.session_state["conversation_list"][i])
+                else:
+                    with st.chat_message("assistant"):
+                        if st.session_state["files_in_context"]:
+                            temp_key = f"{st.session_state['response_counter']}_{i}"
+                            clicked = click_detector(st.session_state["conversation_list"][i], key=temp_key)
+                            if clicked:
+                                handle_source_click(clicked)
+                        else:
+                            st.html(st.session_state["conversation_list"][i])
+        add_source_buttons_to_container(chat_container)
+    except Exception as e:
+        st.info("Error in print_conversation() in app.py: {e}")
 
 print_conversation()
-
-
-

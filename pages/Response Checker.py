@@ -1,7 +1,7 @@
 import streamlit as st
 from genAI import score_relevance
 from sidebar import load_sidebar, generate_uploaded_file_buttons
-from App import initialize_session_state
+from app import initialize_session_state
 # import streamlit.components.v1 as components
 st.set_page_config(page_title = "Context Checker", layout="wide")
 # initialize_session_state()

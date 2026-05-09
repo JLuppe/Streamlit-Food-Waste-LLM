@@ -5,30 +5,29 @@ import fitz
 from embedding import embed_chunk_strings, update_cache_dict
 import numpy as np
 
-
-#   WILL update session state uploaded_files_embeddings with any new uploaded files that are passed to this function
 def convert_docs_to_dict_chunks(uploaded_files: list[UploadedFile]) -> dict[str, dict[str, np.ndarray]]:
     chunk_dict: dict[str, dict[str, np.ndarray]] = {}
     try:
         if not uploaded_files:
-            raise Exception("No uploaded files detected in convert_doc_to_dict_chunks in document_handle.py")
+            raise Exception("No uploaded files detected in convert_doc_to_dict_chunks in uplpoaded_file_handle.py")
+        
         for file in uploaded_files:
-
             file_name = file.name
-            # st.info(f"Current Session State of uploaded_files_embeddings BEFORE UPLOADING: {st.session_state["uploaded_files_embeddings"]}")
-            st.info(file_name)
-            if st.session_state["uploaded_files_embeddings"]: 
-                for f_name in st.session_state["uploaded_files_embeddings"].keys():
-                    if (f_name == file_name):
-                        st.info("Name alreading in embeddings! Will not recalculate Embeddings")
-                        return chunk_dict
-            file_string = extract_text_from_file(file)
-            file_chunks = create_chunks_from_string(file_string)
+            # st.info(file_name)
+            
+            if st.session_state["uploaded_files_embeddings"] and file_name in st.session_state["uploaded_files_embeddings"]:
+                # st.info("Name already in embeddings! Will not recalculate Embeddings")
+                continue 
+            
+            file_chunks = create_chunks_from_string(extract_text_from_file(file))
             chunk_embedding_dict = embed_chunk_strings(file_chunks)
             chunk_dict[file_name] = chunk_embedding_dict
-        st.session_state["uploaded_files_embeddings"] = chunk_dict
-        update_cache_dict(chunk_dict)
-        # st.info(f"Current Session State of uploaded_files_embeddings AFTER ADDING TO SESSION STATE: {st.session_state["uploaded_files_embeddings"]}")
+        # st.info(f"chunk_dict: {chunk_dict}")
+        if chunk_dict:
+            # st.info(f"updating cache dict with {len(chunk_dict)} files worth of chunks and embeddings")
+            update_cache_dict(chunk_dict)
+            st.session_state["uploaded_files_embeddings"].update(chunk_dict)
+        return st.session_state["uploaded_files_embeddings"]  # return the mutated dict itself
     except Exception as e:
         st.error(e)
 
@@ -37,7 +36,7 @@ def extract_text_from_file(file: UploadedFile) -> str:
     try:
         if (not isinstance(file, UploadedFile)):
             # st.info(file.type)
-            raise Exception("Given file is not of type UploadedFile in extract_text_from_file in document_handle.py")
+            raise Exception("Given file is not of type UploadedFile in extract_text_from_file in uplpoaded_file_handle.py")
         file_bytes = file.read()
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         file_string = ""
@@ -59,5 +58,5 @@ def create_chunks_from_string(text: str) -> list[str]:
         return doc_chunks
 
     except Exception as e:
-        st.error(f"Error in create_chunks() in document_handle.py: {e}")
+        st.error(f"Error in create_chunks() in uplpoaded_file_handle.py: {e}")
         return []

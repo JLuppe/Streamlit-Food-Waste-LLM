@@ -1,6 +1,6 @@
 # Dropdown windows that show the state of each important session state variable
 from sidebar import load_sidebar
-from App import initialize_session_state
+from app import initialize_session_state
 import streamlit as st
 initialize_session_state()
 st.session_state["_uploaded_file_buttons_rendered"] = False

@@ -84,6 +84,7 @@ pydantic==2.10.6
 pydantic_core==2.27.2
 pydeck==0.9.1
 pymon==1.1
+PyMuPDF==1.27.2.3
 pynndescent==0.5.13
 PyOpenGL==3.1.10
 PyOpenGL-accelerate==3.1.10

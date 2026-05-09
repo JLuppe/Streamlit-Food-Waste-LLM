@@ -3,7 +3,7 @@ import os
 from pypdf import PdfReader
 import fitz
 import re
-from sidebar import set_viewed_file
+from sidebar import set_viewed_file, set_viewed_file_uploaded
 from highlight import highlight_by_text_position
 
 DATA_PATH = "data"
@@ -14,6 +14,7 @@ def document_viewer():
         css = """
         .st-key-file_viewer_container {
             background-color: rgba(255, 255, 255, 1);
+            border-radius: 12px;
         }
         """
         st.title("Document Viewer")
@@ -42,10 +43,12 @@ def filter_and_highlight_foundational_knowledge(file_name: str):
             if os.path.isfile(candidate_path):
                 with open(candidate_path, "rb") as f:
                     pdf_bytes = f.read()
-            else:
-                st.error("Highlighting Error: File not found.")
-                return
-            set_viewed_file(file_name.strip())
+                set_viewed_file(file_name.strip())
+            if (file_name.strip() in [uploaded_file.name for uploaded_file in st.session_state["uploaded_files"]]):
+                uploaded_file = next((uf for uf in st.session_state["uploaded_files"] if uf.name == file_name.strip()), None)
+                set_viewed_file_uploaded(uploaded_file)
+                
+            
             original_html = st.session_state["viewed_file_html"]    
             # extracting the chunks that belong to the file
             tuples = st.session_state["chunk_tuples"]

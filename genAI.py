@@ -37,7 +37,7 @@ if chunk 2 contains relevant information, include "CHUNK ID # 2:" in your respon
 
 5. If the question cannot be fully answered with the conversation and context provided, say what is missing and answer only the part you can justify.
 
-6. RESPOND IN HTML FORMATTED TEXT
+6. RESPOND IN HTML FORMATTED TEXT if there is context provided, so that the chunk citations can be rendered as clickable links in the UI. If there is no context, respond in plain text.
 """)
         )
         return response.text
@@ -105,3 +105,64 @@ def render_clickable_chunks(response: str, chunks: tuple[tuple[str, str]]):
         return html_content
     except Exception as e:
         st.info("Error in render_clickable_chunks in genAI.py: {e}")
+
+
+def score_relevance(question, context, response):
+
+    client = genai.Client(api_key=st.session_state["API_KEY"])
+    try:
+        response = client.models.generate_content(
+                model="gemini-2.5-flash-lite", contents = (f"""
+Question: {question}
+
+Context: {context}
+
+Answer: {response}
+
+Instructions:
+
+Context-Use Scoring (0–10):
+
+10 = Completely grounded in chunks; no hallucinations.
+
+7–9 = Mostly grounded; a few minor unsupported details.
+
+4–6 = Partially grounded; multiple unverified or missing links.
+
+1–3 = Weakly grounded; only vague overlap with chunks.
+
+0 = Not grounded at all; fully fabricated or irrelevant.
+
+Explanation:
+Provide a concise explanation that includes:
+
+Key claims from the Answer that are supported by specific chunks.
+
+Key claims that are unsupported or contradict the chunks.
+
+Any useful or relevant chunk information that the Answer failed to use.
+
+Chunk Usage Identification:
+
+Used chunks: List the chunk numbers that supported the Answer.
+
+Unused chunks: List chunk numbers that were available but not referenced.
+
+Missing-needed chunks: If the Answer references facts not found in any chunk, note what information is missing.
+
+Your response must be in HTML format
+Expected Output Format:
+
+Answer Score: <0–10>
+Explanation: <short paragraph>
+Supported claims: <list with associated chunk numbers>
+Unsupported claims: <list>
+Used chunks: <list>
+Unused chunks: <list>
+Missing-needed chunks: <description or “none”>
+""")
+        )
+        return response.text
+    except Exception as e:
+        st.error(f"API error, genai_score_relevant() in genAI.py: {e}")
+        return "Fail"

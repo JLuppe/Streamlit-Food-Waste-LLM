@@ -57,60 +57,6 @@ def load_sidebar():
     except Exception as e:
         st.info(f"Error in load_sidebar in sidebar.py: {traceback.format_exc()}")
 
-
-#   FUNCTION:   Generates buttons and checkboxes for uploaded files in sidebar expander
-# def generate_uploaded_file_buttons():
-#     try:
-#         uploadedFiles: list[UploadedFile] = st.session_state["uploaded_files"]
-#         if not uploadedFiles:
-#             # st.info("No uploaded files to display.")
-#             return
-#         # st.info(f"st.session_state:['sidebar_uploaded_files']: {st.session_state["sidebar_uploaded_files"][0]}")
-#         uploaded_files_dropdown = st.sidebar.expander("Uploaded Files Context", expanded=False)
-#         uf_col1, uf_col2 = uploaded_files_dropdown.columns([0.7, 0.3])
-#         for file in uploadedFiles:
-#             uf_col1.checkbox(label= file.name, key=file.name, value=file.name in st.session_state.get("files_in_context", []), on_change=include_in_context, args=(file.name,))
-#             uf_col2.button("View", key=file.name + "_button", on_click=set_viewed_file_uploaded, args=(file,))
-#     except Exception as e:
-#         traceback.print_exc()
-#         st.info(f"Error in generate_uploaded_file_buttons in sidebar.py: {traceback.format_exc()}")
-# def generate_uploaded_file_buttons():
-#     try:
-#         # Guard: skip if already rendered this cycle
-#         render_key = "_uploaded_file_buttons_rendered"
-#         if st.session_state.get(render_key):
-#             return
-#         st.session_state[render_key] = True
-
-#         uploadedFiles: list[UploadedFile] = st.session_state.get("uploaded_files", [])
-#         if not uploadedFiles:
-#             return
-
-#         page_key = st.session_state.get("_active_page", "default")
-#         uploaded_files_dropdown = st.sidebar.expander("Uploaded Files Context", expanded=False)
-#         uf_col1, uf_col2 = uploaded_files_dropdown.columns([0.7, 0.3])
-
-#         for file in uploadedFiles:
-#             checkbox_key = f"{page_key}__{file.name}"
-#             button_key   = f"{page_key}__{file.name}__button"
-
-#             uf_col1.checkbox(
-#                 label=file.name,
-#                 key=checkbox_key,
-#                 value=file.name in st.session_state.get("files_in_context", []),
-#                 on_change=include_in_context,
-#                 args=(file.name,)
-#             )
-#             uf_col2.button(
-#                 "View",
-#                 key=button_key,
-#                 on_click=set_viewed_file_uploaded,
-#                 args=(file,)
-#             )
-#     except Exception as e:
-#         traceback.print_exc()
-#         st.info(f"Error in generate_uploaded_file_buttons: {traceback.format_exc()}")
-
 def generate_uploaded_file_buttons():
     try:
         render_key = "_uploaded_file_buttons_rendered"

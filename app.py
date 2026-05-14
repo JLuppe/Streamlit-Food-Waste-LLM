@@ -82,7 +82,7 @@ col1, col2 = st.columns(2)
 # search_term = search_col.chat_input("Search for text:", width=925, )
 with col1:
     st.title("AI Food Waste Insights Tool", width="stretch")
-    chat_container = st.container(height=950, key="chat_container", vertical_alignment="distribute")
+    chat_container = st.container(height=950, key="chat_container", vertical_alignment="top")
     st.session_state["chat_container"] = chat_container
     user_question = col1.chat_input("What do you want to know?", width="stretch" )   
      # st.session_state["rag_context"] = ""

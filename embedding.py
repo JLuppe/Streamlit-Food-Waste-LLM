@@ -29,40 +29,40 @@ def get_query_embedding(question: str, task_type: str = "RETRIEVAL_QUERY") -> np
 
 #   FUNCTION:   Updates cache, ranks chunks
 #   RETURNS:    list[tuple[str, float]] returns top_k number of chunks that are most similar to question
+def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, str, str]]:
+    try:
+        files_in_context = st.session_state.get("files_in_context", [])
+        full_cache = st.session_state["embedding_cache"]
 
-#   TODO: CACHE IS NOW dict[file_name, dict[chunk_str, np.ndarray]]
-#         NEED TO UPDATE THIS FUNCTION TO HANDLE NEW CACHE STRUCTURE
-#         Tuple with file name and chunk string
-#   TODO: uploaded_chunks arg is now dict[file_name, dict[chunk_str, np.ndarray]]
-#         can now get rid of embedding within this function
-def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str,str, str]]:
-    try: 
-        cache: dict[str, dict[str, np.ndarray]] = {}
-        for file_name in st.session_state.get("files_in_context", []):
-            # st.info("File in context: " + file_name)
-            cache[file_name] = st.session_state["embedding_cache"][file_name]
-        # st.info(cache)
-        f_names: list[str] = st.session_state["embedding_cache"].keys()
+        # Build filtered cache using only files in context
+        cache: dict[str, dict[str, np.ndarray]] = {
+            f: full_cache[f] for f in files_in_context if f in full_cache
+        }
+
+        st.info(cache.keys())
+
+        if not cache:
+            return []
+
         name_text_tuples: list[tuple[str, str]] = []
         emb_list: list[np.ndarray] = []
-        for f_name in f_names: # keys are file names
-            for chunk_str, emb in st.session_state["embedding_cache"].get(f_name).items():
-                # st.info(chunk_str)
+
+        for f_name, subdict in cache.items():  # <-- use `cache`, not full session state
+            for chunk_str, emb in subdict.items():
                 name_text_tuples.append((f_name, chunk_str))
                 if isinstance(emb, np.ndarray):
-                    # st.info(emb)
                     arr = emb.astype(np.float32)
                     if arr.ndim == 1 and arr.shape[0] == 3072:
                         emb_list.append(arr)
-        # st.info(emb_list)
+        st.info(name_text_tuples)
         if not emb_list:
             return []
+
         chunk_embeddings = np.vstack(emb_list)
         return get_chunk_similarity(question, chunk_embeddings, top_k, name_text_tuples)
-    
     except Exception as e:
         traceback.print_exc()
-        st.error(f"Error in rank_chunks_for_question() in embedding.py: {traceback.format_exc()}")
+        st.error(f"Error in rank_chunks_for_question(): {traceback.format_exc()}")
 
 def update_cache_dict(entries_to_add: dict[str, dict[str, np.ndarray]]):
     try:
@@ -91,54 +91,32 @@ def get_chunk_similarity(question: str, chunk_embeddings, top_k: int, name_text_
 #   RETURNS:    N/A
 def init_embedding_cache():
     try:
-        pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
-        if not pkl_files:
-            return
-        combined_cache = {}
-        # Only load caches for files listed in session_state["files_in_context"]
         files_in_context = st.session_state.get("files_in_context", [])
         if not files_in_context:
             st.session_state["embedding_cache"] = {}
             return
+
+        # Normalize to basenames for consistent matching
         desired_names = {os.path.basename(p) for p in files_in_context}
+        combined_cache = {}
+
+        pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
         for path in pkl_files:
             with open(path, "rb") as f:
-                data = pickle.load(f)  # expected dict[file_name, dict[chunk_str, np.ndarray]]
+                data = pickle.load(f)
             for fname, subdict in data.items():
-                if fname in desired_names:
-                    combined_cache[fname] = subdict
+                if os.path.basename(fname) in desired_names:
+                    combined_cache[os.path.basename(fname)] = subdict
 
+        # Merge uploaded file embeddings
+        for file_name, embeddings in st.session_state.get("uploaded_files_embeddings", {}).items():
+            base = os.path.basename(file_name)
+            if base in desired_names:
+                combined_cache[base] = embeddings
 
-        uploaded_file_names = []
-        uploaded_files = st.session_state.get("uploaded_files", [])
-        if uploaded_files:
-            for file in uploaded_files:
-                uploaded_file_names.append(file.name)
-            for file_name in files_in_context:
-                if file_name in uploaded_file_names and st.session_state["uploaded_files_embeddings"]:
-                    for embedding in st.session_state["uploaded_files_embeddings"]:
-                        if embedding == file_name:
-                            combined_cache[file_name] = st.session_state["uploaded_files_embeddings"].get(file_name)
         st.session_state["embedding_cache"] = combined_cache
     except Exception as e:
-        st.error(f"Error in init_embedding_cache() in embedding.py: {traceback.format_exc()}")
-
-# def embed_chunk_strings(strings: list[str]) -> dict[str, np.ndarray]:
-#     try:
-#         dict_str_embed: dict[str, np.ndarray] = {}
-#         client = genai.Client(api_key=st.session_state["API_KEY"])
-#         resp = client.models.embed_content(
-#             model="gemini-embedding-001",
-#             contents=strings,
-#             config=types.EmbedContentConfig(task_type="SEMANTIC_SIMILARITY"),
-#         )
-#         for idx, string in enumerate(strings):
-#             # st.info(resp.embeddings[idx].values)
-#             dict_str_embed[string] = resp.embeddings[idx].values
-        
-#         return dict_str_embed
-#     except Exception as e:
-#         st.error(f"Problem with embed_chunk_strings() in embeddings.py: {e}")
+        st.error(f"Error in init_embedding_cache(): {traceback.format_exc()}")
 
 def embed_chunk_strings(strings: list[str]) -> dict[str, np.ndarray]:
     try:

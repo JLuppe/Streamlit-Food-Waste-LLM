@@ -150,25 +150,63 @@ def add_source_buttons_to_container(container):
 
 #   FUNCTION:   prints the conversation, and adds source files at the end
 #   RETURNS:    N/A
+# def print_conversation():
+#     try:
+#         chat_container.empty()
+#         for i in range(len(st.session_state["conversation_list"])):
+#             with chat_container:
+#                 if i % 2 == 0: # user
+#                     with st.chat_message("user"):
+#                         st.markdown(st.session_state["conversation_list"][i])
+#                 else:
+#                     with st.chat_message("assistant"):
+#                         if st.session_state["chunk_tuples"]:
+#                             temp_key = f"{st.session_state['response_counter']}_{i}"
+#                             clicked = click_detector(st.session_state["conversation_list"][i], key=temp_key)
+#                             if clicked:
+#                                 handle_source_click(clicked)
+#                         else:
+#                             st.write(st.session_state["conversation_list"][i])
+#         add_source_buttons_to_container(chat_container)
+#     except Exception as e:
+#         st.error("Error in print_conversation() in app.py: {e}")
+
 def print_conversation():
     try:
+        st.markdown("""
+            <style>
+            /* Tighten gap between chat messages */
+            .stChatMessage {
+                padding-top: 0.4rem !important;
+                padding-bottom: 0.4rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            /* Reduce internal padding of message content */
+            .stChatMessage > div {
+                gap: 0.5rem !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
         chat_container.empty()
-        for i in range(len(st.session_state["conversation_list"])):
-            with chat_container:
-                if i % 2 == 0: # user
+        with chat_container:  # ← single context outside the loop
+            for i in range(len(st.session_state["conversation_list"])):
+                if i % 2 == 0:
                     with st.chat_message("user"):
                         st.markdown(st.session_state["conversation_list"][i])
                 else:
                     with st.chat_message("assistant"):
                         if st.session_state["chunk_tuples"]:
                             temp_key = f"{st.session_state['response_counter']}_{i}"
-                            clicked = click_detector(st.session_state["conversation_list"][i], key=temp_key)
+                            clicked = click_detector(
+                                st.session_state["conversation_list"][i],
+                                key=temp_key
+                            )
                             if clicked:
                                 handle_source_click(clicked)
                         else:
                             st.write(st.session_state["conversation_list"][i])
-        add_source_buttons_to_container(chat_container)
+            add_source_buttons_to_container(chat_container)
     except Exception as e:
-        st.error("Error in print_conversation() in app.py: {e}")
-
+        st.error(f"Error in print_conversation() in app.py: {e}")
 print_conversation()

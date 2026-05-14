@@ -39,7 +39,7 @@ def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, 
             f: full_cache[f] for f in files_in_context if f in full_cache
         }
 
-        st.info(cache.keys())
+        # st.info(cache.keys())
 
         if not cache:
             return []
@@ -54,7 +54,7 @@ def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, 
                     arr = emb.astype(np.float32)
                     if arr.ndim == 1 and arr.shape[0] == 3072:
                         emb_list.append(arr)
-        st.info(name_text_tuples)
+        # st.info(name_text_tuples)
         if not emb_list:
             return []
 

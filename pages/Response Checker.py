@@ -1,10 +1,7 @@
 import streamlit as st
 from genAI import score_relevance
-from sidebar import load_sidebar, generate_uploaded_file_buttons
-from app import initialize_session_state
-# import streamlit.components.v1 as components
+from sidebar import load_sidebar
 st.set_page_config(page_title = "Context Checker", layout="wide")
-# initialize_session_state()
 st.session_state["_uploaded_file_buttons_rendered"] = False
 load_sidebar()
 
@@ -28,9 +25,6 @@ evaluation = st.session_state.get("evaluation", "")
 with checker_box:
     st.markdown(evaluation)
 
-
-
-
 def convert_string_id(id: str) -> str:
     # first 0 - 9, just take 11th position "CHUNK ID # " + str(id) + ": "
     #                                       012345678910      11      12
@@ -38,13 +32,6 @@ def convert_string_id(id: str) -> str:
         return str(int(id[11])+1)
     else: # its two digits
         return str(int(id[11:13])+1)
-
-
-
-# top_con = st.container(border=False) 
-# top_con.button("Evaluate Response", on_click=genai_checker)
-# st.session_state["checker_box"] = top_con.container(height=500)
-
 
 col1, col3 = st.columns([0.48, 0.48]) 
 with col1:
@@ -67,22 +54,3 @@ with col3:
         st.error("No response generated yet")
     else:
         response_container.html(st.session_state["response"])
-
-
-
-
-
-# feed chunks and response into genAI and ask it to provide a score as to how well the response uses the context provided by the chunks. 
-# Also ask it to provide an explanation for the score and to identify which chunks were used in the response and which were not.
-
-
-
-
-
-
-
-
-
-
-
-

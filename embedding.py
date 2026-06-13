@@ -55,6 +55,7 @@ def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, 
         if not emb_list:
             return []
 
+
         chunk_embeddings = np.vstack(emb_list)
         return get_chunk_similarity(question, chunk_embeddings, top_k, name_text_tuples)
 
@@ -97,12 +98,18 @@ def init_embedding_cache():
             return
 
         # Normalize to basenames for consistent matching
+
+        # Normalize to basenames for consistent matching
         desired_names = {os.path.basename(p) for p in files_in_context}
+        combined_cache = {}
+
+        pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
         combined_cache = {}
 
         pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
         for path in pkl_files:
             with open(path, "rb") as f:
+                data = pickle.load(f)
                 data = pickle.load(f)
             for fname, subdict in data.items():
                 if os.path.basename(fname) in desired_names:
@@ -114,8 +121,18 @@ def init_embedding_cache():
             if base in desired_names:
                 combined_cache[base] = embeddings
 
+                if os.path.basename(fname) in desired_names:
+                    combined_cache[os.path.basename(fname)] = subdict
+
+        # Merge uploaded file embeddings
+        for file_name, embeddings in st.session_state.get("uploaded_files_embeddings", {}).items():
+            base = os.path.basename(file_name)
+            if base in desired_names:
+                combined_cache[base] = embeddings
+
         st.session_state["embedding_cache"] = combined_cache
     except Exception as e:
+        st.error(f"Error in init_embedding_cache(): {traceback.format_exc()}")
         st.error(f"Error in init_embedding_cache(): {traceback.format_exc()}")
 
 def embed_chunk_strings(strings: list[str]) -> dict[str, np.ndarray]:

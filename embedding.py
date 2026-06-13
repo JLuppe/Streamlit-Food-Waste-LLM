@@ -34,12 +34,9 @@ def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, 
         files_in_context = st.session_state.get("files_in_context", [])
         full_cache = st.session_state["embedding_cache"]
 
-        # Build filtered cache using only files in context
         cache: dict[str, dict[str, np.ndarray]] = {
             f: full_cache[f] for f in files_in_context if f in full_cache
         }
-
-        st.info(cache.keys())
 
         if not cache:
             return []
@@ -47,22 +44,24 @@ def rank_chunks_for_question(question: str, top_k: int = 25) -> list[tuple[str, 
         name_text_tuples: list[tuple[str, str]] = []
         emb_list: list[np.ndarray] = []
 
-        for f_name, subdict in cache.items():  # <-- use `cache`, not full session state
+        for f_name, subdict in cache.items():
             for chunk_str, emb in subdict.items():
-                name_text_tuples.append((f_name, chunk_str))
                 if isinstance(emb, np.ndarray):
                     arr = emb.astype(np.float32)
                     if arr.ndim == 1 and arr.shape[0] == 3072:
                         emb_list.append(arr)
-        st.info(name_text_tuples)
+                        name_text_tuples.append((f_name, chunk_str))
+
         if not emb_list:
             return []
 
         chunk_embeddings = np.vstack(emb_list)
         return get_chunk_similarity(question, chunk_embeddings, top_k, name_text_tuples)
-    except Exception as e:
+
+    except Exception:
         traceback.print_exc()
         st.error(f"Error in rank_chunks_for_question(): {traceback.format_exc()}")
+        return []
 
 def update_cache_dict(entries_to_add: dict[str, dict[str, np.ndarray]]):
     try:
@@ -82,6 +81,7 @@ def get_chunk_similarity(question: str, chunk_embeddings, top_k: int, name_text_
         for id, i in enumerate(top_idx):
             id_str = "CHUNK ID # " + str(id) + ": "
             result.append((id_str, name_text_tuples[i][0], name_text_tuples[i][1]))
+        st.info(result)
         return result
     except Exception as e:
         st.error(f"Error in get_chunk_similarity() in embedding.py: {traceback.format_exc()}")

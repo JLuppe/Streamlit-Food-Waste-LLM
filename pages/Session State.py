@@ -59,7 +59,7 @@
 
 import streamlit as st
 from sidebar import load_sidebar
-from Chat import initialize_session_state
+from app import initialize_session_state
 
 st.set_page_config(page_title="Session State", layout="wide")
 initialize_session_state()

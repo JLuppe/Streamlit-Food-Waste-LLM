@@ -82,7 +82,7 @@ def get_chunk_similarity(question: str, chunk_embeddings, top_k: int, name_text_
         for id, i in enumerate(top_idx):
             id_str = "CHUNK ID # " + str(id) + ": "
             result.append((id_str, name_text_tuples[i][0], name_text_tuples[i][1]))
-        st.info(result)
+        # st.info(result)
         return result
     except Exception as e:
         st.error(f"Error in get_chunk_similarity() in embedding.py: {traceback.format_exc()}")
@@ -106,10 +106,8 @@ def init_embedding_cache():
         pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
         combined_cache = {}
 
-        pkl_files = glob.glob(os.path.join(EMBEDDING_CACHE_DIR, "*.pkl"))
         for path in pkl_files:
             with open(path, "rb") as f:
-                data = pickle.load(f)
                 data = pickle.load(f)
             for fname, subdict in data.items():
                 if os.path.basename(fname) in desired_names:
@@ -124,15 +122,9 @@ def init_embedding_cache():
                 if os.path.basename(fname) in desired_names:
                     combined_cache[os.path.basename(fname)] = subdict
 
-        # Merge uploaded file embeddings
-        for file_name, embeddings in st.session_state.get("uploaded_files_embeddings", {}).items():
-            base = os.path.basename(file_name)
-            if base in desired_names:
-                combined_cache[base] = embeddings
 
         st.session_state["embedding_cache"] = combined_cache
     except Exception as e:
-        st.error(f"Error in init_embedding_cache(): {traceback.format_exc()}")
         st.error(f"Error in init_embedding_cache(): {traceback.format_exc()}")
 
 def embed_chunk_strings(strings: list[str]) -> dict[str, np.ndarray]:

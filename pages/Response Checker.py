@@ -3,7 +3,7 @@ from genAI import score_relevance
 from sidebar import load_sidebar
 st.set_page_config(page_title="Context Checker", layout="wide")
 st.session_state["_uploaded_file_buttons_rendered"] = False
-load_sidebar()
+load_sidebar(False)
 # At the top of your page, before other elements
 st.markdown("<div style='margin-top: 3rem'></div>", unsafe_allow_html=True)
 # ─── Custom CSS Injection ────────────────────────────────────────────────────

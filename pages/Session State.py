@@ -64,7 +64,7 @@ from app import initialize_session_state
 st.set_page_config(page_title="Session State", layout="wide")
 initialize_session_state()
 st.session_state["_uploaded_file_buttons_rendered"] = False
-load_sidebar()
+load_sidebar(False)
 
 # ─── Custom CSS ──────────────────────────────────────────────────────────────
 st.markdown("""

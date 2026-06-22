@@ -269,7 +269,7 @@ def _inject_sidebar_css():
 
 
 # ─── Main sidebar loader ──────────────────────────────────────────────────────
-def load_sidebar(reset=False):
+def load_sidebar(reset):
     _inject_sidebar_css()
     try:
         # ── API Key ──────────────────────────────────────────────────────────

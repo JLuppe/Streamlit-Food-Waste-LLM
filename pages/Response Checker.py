@@ -4,12 +4,9 @@ from sidebar import load_sidebar
 st.set_page_config(page_title="Context Checker", layout="wide")
 st.session_state["_uploaded_file_buttons_rendered"] = False
 load_sidebar(False)
-# At the top of your page, before other elements
 st.markdown("<div style='margin-top: 3rem'></div>", unsafe_allow_html=True)
-# ─── Custom CSS Injection ────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ── Design Tokens ──────────────────────────────────────────────────────── */
 :root {
   --font-body: 'Satoshi', 'Inter', sans-serif;
 
@@ -50,7 +47,6 @@ st.markdown("""
   --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Base Reset ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, [data-testid="stAppViewContainer"],
@@ -74,7 +70,6 @@ html, body, [data-testid="stAppViewContainer"],
   max-width: 100% !important;
 }
 
-/* ── Page titles ────────────────────────────────────────────────────────── */
 [data-testid="stHeading"] h1,
 .stTitle h1 {
   font-family: var(--font-body) !important;
@@ -87,7 +82,6 @@ html, body, [data-testid="stAppViewContainer"],
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ── Sidebar ────────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
   background: var(--color-surface) !important;
   border-right: 1px solid var(--color-border) !important;
@@ -112,7 +106,6 @@ html, body, [data-testid="stAppViewContainer"],
   border-radius: var(--radius-md) !important;
 }
 
-/* ── Containers ─────────────────────────────────────────────────────────── */
 [data-testid="stVerticalBlockBorderWrapper"],
 .stContainer {
   border-radius: var(--radius-xl) !important;
@@ -120,7 +113,6 @@ html, body, [data-testid="stAppViewContainer"],
   background: var(--color-surface) !important;
 }
 
-/* ── Text inputs ────────────────────────────────────────────────────────── */
 .stTextInput input, .stTextArea textarea {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -150,7 +142,7 @@ html, body, [data-testid="stAppViewContainer"],
   text-transform: uppercase !important;
 }
 
-/* ── Buttons ────────────────────────────────────────────────────────────── */
+
 .stButton > button {
   font-family: var(--font-body) !important;
   font-size: var(--text-sm) !important;
@@ -176,7 +168,6 @@ html, body, [data-testid="stAppViewContainer"],
   transform: translateY(1px) !important;
 }
 
-/* ── Selectbox / dropdown ───────────────────────────────────────────────── */
 .stSelectbox div[data-baseweb="select"] > div {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -184,7 +175,6 @@ html, body, [data-testid="stAppViewContainer"],
   color: var(--color-text) !important;
 }
 
-/* ── File uploader ──────────────────────────────────────────────────────── */
 [data-testid="stFileUploadDropzone"] {
   background: var(--color-surface-2) !important;
   border: 2px dashed var(--color-border) !important;
@@ -197,7 +187,6 @@ html, body, [data-testid="stAppViewContainer"],
   background: var(--color-primary-subtle) !important;
 }
 
-/* ── Info / error / success boxes ───────────────────────────────────────── */
 .stAlert {
   background: var(--color-surface-2) !important;
   border-radius: var(--radius-lg) !important;
@@ -216,12 +205,10 @@ html, body, [data-testid="stAppViewContainer"],
   border-left-color: var(--color-success) !important;
 }
 
-/* ── Spinner ────────────────────────────────────────────────────────────── */
 .stSpinner > div {
   border-top-color: var(--color-primary) !important;
 }
 
-/* ── Markdown text ──────────────────────────────────────────────────────── */
 .stMarkdown, .stMarkdown p, .stWrite p {
   font-family: var(--font-body) !important;
   font-size: var(--text-base) !important;
@@ -238,7 +225,6 @@ html, body, [data-testid="stAppViewContainer"],
   font-size: 0.9em !important;
 }
 
-/* ── Expander ───────────────────────────────────────────────────────────── */
 [data-testid="stExpander"] {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -278,13 +264,11 @@ html, body, [data-testid="stAppViewContainer"],
   line-height: 1.7 !important;
 }
 
-/* ── Columns gap ────────────────────────────────────────────────────────── */
 [data-testid="stHorizontalBlock"] {
   gap: var(--space-4) !important;
   align-items: stretch !important;
 }
 
-/* ── Evaluate button — accent primary style ─────────────────────────────── */
 [data-testid="stHorizontalBlock"] > div:first-child .stButton > button,
 .stButton > button[kind="primary"] {
   background: var(--color-primary) !important;
@@ -303,7 +287,6 @@ html, body, [data-testid="stAppViewContainer"],
   box-shadow: 0 0 0 3px var(--color-primary-glow), var(--shadow-md) !important;
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-surface); }
 ::-webkit-scrollbar-thumb {
@@ -312,17 +295,14 @@ html, body, [data-testid="stAppViewContainer"],
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
 
-/* ── Source info container ──────────────────────────────────────────────── */
 .stContainer[border="true"] {
   background: var(--color-surface-2) !important;
   border-color: var(--color-border) !important;
   border-radius: var(--radius-lg) !important;
 }
 
-/* ── Hide Streamlit branding ────────────────────────────────────────────── */
 #MainMenu, footer, [data-testid="stDecoration"] { display: none !important; }
 
-/* ── Satoshi font ───────────────────────────────────────────────────────── */
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap');
 </style>
 """, unsafe_allow_html=True)

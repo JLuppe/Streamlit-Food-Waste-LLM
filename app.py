@@ -22,7 +22,6 @@ st.markdown("<div style='margin-top: 3rem'></div>", unsafe_allow_html=True)
 st.markdown("""
 <style>
 
-/* ── Design Tokens ──────────────────────────────────────────────────────── */
 :root {
   --font-body: 'Satoshi', 'Inter', sans-serif;
 
@@ -70,7 +69,6 @@ st.markdown("""
   --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Base Reset ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body, [data-testid="stAppViewContainer"],
@@ -80,7 +78,6 @@ html, body, [data-testid="stAppViewContainer"],
   color: var(--color-text) !important;
 }
 
-/* ── App background ─────────────────────────────────────────────────────── */
 [data-testid="stAppViewContainer"] {
   background: var(--color-bg) !important;
 }
@@ -90,13 +87,11 @@ html, body, [data-testid="stAppViewContainer"],
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ── Main block container ───────────────────────────────────────────────── */
 .block-container {
   padding: var(--space-6) var(--space-8) !important;
   max-width: 100% !important;
 }
 
-/* ── Page title (st.title) ──────────────────────────────────────────────── */
 [data-testid="stHeading"] h1,
 .stTitle h1 {
   font-family: var(--font-body) !important;
@@ -109,7 +104,6 @@ html, body, [data-testid="stAppViewContainer"],
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ── Sidebar ────────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
   background: var(--color-surface) !important;
   border-right: 1px solid var(--color-border) !important;
@@ -135,7 +129,6 @@ html, body, [data-testid="stAppViewContainer"],
   border-radius: var(--radius-md) !important;
 }
 
-/* ── Chat container ─────────────────────────────────────────────────────── */
 [data-testid="stVerticalBlockBorderWrapper"],
 .stContainer {
   border-radius: var(--radius-xl) !important;
@@ -143,7 +136,6 @@ html, body, [data-testid="stAppViewContainer"],
   background: var(--color-surface) !important;
 }
 
-/* ── Chat messages ──────────────────────────────────────────────────────── */
 [data-testid="stChatMessage"] {
   background: transparent !important;
   border: none !important;
@@ -174,7 +166,6 @@ html, body, [data-testid="stAppViewContainer"],
   border-radius: var(--radius-full, 9999px) !important;
 }
 
-/* ── Chat input ─────────────────────────────────────────────────────────── */
 [data-testid="stChatInput"] {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -201,7 +192,6 @@ html, body, [data-testid="stAppViewContainer"],
   color: var(--color-text-faint) !important;
 }
 
-/* ── Text inputs (API key etc.) ─────────────────────────────────────────── */
 .stTextInput input, .stTextArea textarea {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -231,7 +221,6 @@ html, body, [data-testid="stAppViewContainer"],
   text-transform: uppercase !important;
 }
 
-/* ── Buttons ────────────────────────────────────────────────────────────── */
 .stButton > button {
   font-family: var(--font-body) !important;
   font-size: var(--text-sm) !important;
@@ -257,7 +246,6 @@ html, body, [data-testid="stAppViewContainer"],
   transform: translateY(1px) !important;
 }
 
-/* ── Selectbox / dropdown ───────────────────────────────────────────────── */
 .stSelectbox div[data-baseweb="select"] > div {
   background: var(--color-surface-2) !important;
   border: 1px solid var(--color-border) !important;
@@ -265,7 +253,6 @@ html, body, [data-testid="stAppViewContainer"],
   color: var(--color-text) !important;
 }
 
-/* ── File uploader ──────────────────────────────────────────────────────── */
 [data-testid="stFileUploadDropzone"] {
   background: var(--color-surface-2) !important;
   border: 2px dashed var(--color-border) !important;
@@ -278,7 +265,6 @@ html, body, [data-testid="stAppViewContainer"],
   background: var(--color-primary-subtle) !important;
 }
 
-/* ── Info / error / success boxes ───────────────────────────────────────── */
 .stAlert {
   background: var(--color-surface-2) !important;
   border-radius: var(--radius-lg) !important;
@@ -297,12 +283,10 @@ html, body, [data-testid="stAppViewContainer"],
   border-left-color: var(--color-success) !important;
 }
 
-/* ── Spinner ────────────────────────────────────────────────────────────── */
 .stSpinner > div {
   border-top-color: var(--color-primary) !important;
 }
 
-/* ── Markdown text ──────────────────────────────────────────────────────── */
 .stMarkdown, .stMarkdown p, .stWrite p {
   font-family: var(--font-body) !important;
   font-size: var(--text-base) !important;
@@ -319,13 +303,11 @@ html, body, [data-testid="stAppViewContainer"],
   font-size: 0.9em !important;
 }
 
-/* ── Columns gap ────────────────────────────────────────────────────────── */
 [data-testid="stHorizontalBlock"] {
   gap: var(--space-4) !important;
   align-items: stretch !important;
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-surface); }
 ::-webkit-scrollbar-thumb {
@@ -334,20 +316,17 @@ html, body, [data-testid="stAppViewContainer"],
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
 
-/* ── Source info container ──────────────────────────────────────────────── */
 .stContainer[border="true"] {
   background: var(--color-surface-2) !important;
   border-color: var(--color-border) !important;
   border-radius: var(--radius-lg) !important;
 }
 
-/* ── Hide Streamlit branding ────────────────────────────────────────────── */
 #MainMenu, footer, [data-testid="stDecoration"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─── Session State ───────────────────────────────────────────────────────────
 def initialize_session_state():
     defaults = {
         "response_counter": 0,

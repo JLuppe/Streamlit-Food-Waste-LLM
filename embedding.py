@@ -96,10 +96,6 @@ def init_embedding_cache():
         if not files_in_context:
             st.session_state["embedding_cache"] = {}
             return
-
-        # Normalize to basenames for consistent matching
-
-        # Normalize to basenames for consistent matching
         desired_names = {os.path.basename(p) for p in files_in_context}
         combined_cache = {}
 

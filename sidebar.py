@@ -8,14 +8,10 @@ from pypdf import PdfReader
 import fitz
 import traceback
 
-
 DATA_PATH = "data"
 
-
-# ─── Sidebar CSS ─────────────────────────────────────────────────────────────
 _SIDEBAR_CSS = """
 <style>
-/* ── Sidebar shell ──────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
     background: #161718 !important;
     border-right: 1px solid #2a2c2f !important;
@@ -28,7 +24,6 @@ _SIDEBAR_CSS = """
     gap: 0.25rem;
 }
 
-/* ── Sidebar section titles ─────────────────────────────────────────────── */
 [data-testid="stSidebar"] h1 {
     font-family: 'Satoshi', 'Inter', sans-serif !important;
     font-size: clamp(0.875rem, 0.8rem + 0.35vw, 1rem) !important;
@@ -41,7 +36,6 @@ _SIDEBAR_CSS = """
     border-bottom: 1px solid #2a2c2f !important;
 }
 
-/* ── API key input ──────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] .stTextInput {
     margin-bottom: 0.25rem !important;
 }
@@ -78,7 +72,6 @@ _SIDEBAR_CSS = """
     color: #555452 !important;
 }
 
-/* ── Hint / info text ───────────────────────────────────────────────────── */
 [data-testid="stSidebar"] .stText,
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] .stMarkdown p {
@@ -88,7 +81,6 @@ _SIDEBAR_CSS = """
     line-height: 1.55 !important;
 }
 
-/* ── Expanders ──────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] .stExpander {
     background: #1c1d1f !important;
     border: 1px solid #2a2c2f !important;
@@ -117,7 +109,6 @@ _SIDEBAR_CSS = """
     border-bottom: 1px solid #2a2c2f !important;
 }
 
-/* ── Checkboxes ─────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] .stCheckbox {
     gap: 0.4rem !important;
     padding: 0.25rem 0 !important;
@@ -152,7 +143,6 @@ _SIDEBAR_CSS = """
     border-color: #4f98a3 !important;
 }
 
-/* ── Sidebar buttons ────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] .stButton > button {
     font-family: 'Satoshi', 'Inter', sans-serif !important;
     font-size: 0.75rem !important;
@@ -195,7 +185,6 @@ _SIDEBAR_CSS = """
     color: #e67fbf !important;
 }
 
-/* ── File uploader ──────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] [data-testid="stFileUploadDropzone"] {
     background: #1c1d1f !important;
     border: 2px dashed #2a2c2f !important;
@@ -237,13 +226,11 @@ _SIDEBAR_CSS = """
     margin-top: 0.25rem !important;
 }
 
-/* ── Divider ────────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] hr {
     border-color: #2a2c2f !important;
     margin: 0.75rem 0 !important;
 }
 
-/* ── Alert / info inside sidebar ────────────────────────────────────────── */
 [data-testid="stSidebar"] .stAlert {
     background: #1c1d1f !important;
     border-left: 3px solid #4f98a3 !important;
@@ -253,7 +240,6 @@ _SIDEBAR_CSS = """
     padding: 0.5rem 0.75rem !important;
 }
 
-/* ── Row spacers between file entries ───────────────────────────────────── */
 [data-testid="stSidebar"] .stVerticalBlock {
     gap: 0.1rem !important;
 }
@@ -268,11 +254,9 @@ def _inject_sidebar_css():
         st.session_state["_sidebar_css_injected"] = True
 
 
-# ─── Main sidebar loader ──────────────────────────────────────────────────────
 def load_sidebar(reset):
     _inject_sidebar_css()
     try:
-        # ── API Key ──────────────────────────────────────────────────────────
         st.session_state["API_KEY"] = st.sidebar.text_input(
             "Gemini API Key",
             type="password",
@@ -282,7 +266,6 @@ def load_sidebar(reset):
 
         st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
-        # ── Foundational Files ───────────────────────────────────────────────
         st.sidebar.title("Foundational Files")
         context_dropdown = st.sidebar.expander("Context Options", expanded=False)
 
@@ -314,7 +297,6 @@ def load_sidebar(reset):
         else:
             st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
-            # ── User Files ───────────────────────────────────────────────────
             st.sidebar.title("Your Files")
             st.session_state["sidebar_uploaded_files"] = st.sidebar.file_uploader(
                 "Upload PDFs",
@@ -339,7 +321,6 @@ def load_sidebar(reset):
 
             st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
-            # ── Reset Chat ───────────────────────────────────────────────────
             if reset:
                 st.sidebar.button(
                     "🗑  Reset Chat History",
@@ -371,7 +352,6 @@ def generate_uploaded_file_buttons():
             st.session_state["uploaded_files_counter"] += 1
             button_key = f"{page_key}__{file.name}__button{st.session_state['uploaded_files_counter']}"
 
-            # ✅ Create a fresh column pair per file row
             uploaded_files_dropdown.write("")  # visual spacer
             uf_col1, uf_col2 = uploaded_files_dropdown.columns([0.7, 0.3])
 
@@ -392,8 +372,6 @@ def generate_uploaded_file_buttons():
         traceback.print_exc()
         st.sidebar.info(f"Error in generate_uploaded_file_buttons: {traceback.format_exc()}")
 
-
-# ─── File viewer helpers ──────────────────────────────────────────────────────
 def set_viewed_file(file_name: str):
     try:
         pattern = os.path.join(DATA_PATH, "**", file_name)
@@ -429,7 +407,6 @@ def set_viewed_file_uploaded(file: UploadedFile):
         st.sidebar.info(f"Error in set_viewed_file_uploaded: {e}")
 
 
-# ─── Conversation / context helpers ──────────────────────────────────────────
 def reset_conversation():
     try:
         st.session_state["response"] = ""

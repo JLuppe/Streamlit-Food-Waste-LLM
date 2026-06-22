@@ -8,31 +8,6 @@ from highlight import highlight_by_text_position
 
 DATA_PATH = "data"
 
-#   FUNCTION:   Displays PDF viewer for uploaded or selected document
-# def document_viewer():
-#     try:
-#         css = """
-#         .st-key-file_viewer_container {
-#             background-color: rgba(255, 255, 255, 1);
-#             border-radius: 12px;
-#         }
-#         """
-#         st.title("Document Viewer")
-#         file_viewer = st.container(height=950, key="file_viewer_container", border=False)
-#         if st.session_state["viewed_file_html"]:
-#             col1, col2, col3 = file_viewer.columns([0.1, 0.8, 0.1])
-#             file_html = st.session_state["viewed_file_html"]
-#             st.html(f"<style>{css}</style>")
-#             col2.html(file_html, width="content")
-#         else:
-#             col1, col2, col3 = file_viewer.columns([0.1, 0.8, 0.1])
-#             st.html(f"<style>{css}</style>")
-#             col2.html("<p style='text-align: center; color: black; font-weight: bold; font-size: 48px;'>No Document Selected</p>")
-            
-#             # file_viewer.text("No Documents Selected")
-#     except Exception as e:
-#         st.info("Error in document_viewer in pdf.py: {e}")
-
 def document_viewer():
     try:
         css = """
@@ -65,7 +40,7 @@ def document_viewer():
                         font-weight: bold;
                         font-size: 24px;
                         margin: 0;
-                    ">No Document Selected</p>
+                    ">Click "View" next to a file in the context menu to view the file.</p>
                 </div>
             """)
     except Exception as e:

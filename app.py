@@ -387,60 +387,170 @@ load_sidebar()
 
 
 col1, col2 = st.columns(2)
+if not st.session_state["API_KEY"]:
+    chat_container = st.container(height=1, key="chat_container", vertical_alignment="top", border=False)
+    st.markdown("""
+    <style>
+    .landing-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 72vh;
+        padding: var(--space-8) var(--space-4);
+        text-align: center;
+    }
+
+    .landing-icon {
+        font-size: 3.5rem;
+        margin-bottom: var(--space-4);
+        line-height: 1;
+        filter: drop-shadow(0 0 24px oklch(0.55 0.09 192 / 0.35));
+    }
+
+    .landing-title {
+        font-family: var(--font-body);
+        font-size: var(--text-xl);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--color-text);
+        margin-bottom: var(--space-3);
+        line-height: 1.15;
+    }
+
+    .landing-subtitle {
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+        max-width: 44ch;
+        line-height: 1.7;
+        margin-bottom: var(--space-8);
+    }
+
+    .landing-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6) var(--space-8);
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 12px 40px oklch(0 0 0 / 0.45);
+    }
+
+    .landing-card-label {
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        text-align: left;
+    }
+
+    .landing-features {
+        display: flex;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 520px;
+    }
+
+    .landing-feature-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-full);
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        font-family: var(--font-body);
+    }
+
+    .chip-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        flex-shrink: 0;
+    }
+    </style>
+
+    <div class="landing-wrapper">
+        <div class="landing-icon">🌱</div>
+        <h1 class="landing-title">Food Waste Insights Tool</h1>
+        <p class="landing-subtitle">
+            Ask questions, explore research, and uncover patterns in food waste data —
+            powered by RAG and your uploaded documents.
+        </p>
+        <div class="landing-card">
+            <p class="landing-card-label">Get started — enter your API key in the sidebar</p>
+        </div>
+        <div class="landing-features">
+            <span class="landing-feature-chip"><span class="chip-dot"></span>RAG-powered answers</span>
+            <span class="landing-feature-chip"><span class="chip-dot"></span>PDF document viewer</span>
+            <span class="landing-feature-chip"><span class="chip-dot"></span>Source citations</span>
+            <span class="landing-feature-chip"><span class="chip-dot"></span>Semantic search</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+else:
 
 
-# ─── CHAT PANEL ──────────────────────────────────────────────────────────────
-with col1:
-    st.title("Chat")
-    chat_container = st.container(height=950, key="chat_container", vertical_alignment="top", border=False)
-    st.session_state["chat_container"] = chat_container
-    user_question = col1.chat_input("Ask something about food waste…", width="stretch")
+    # ─── CHAT PANEL ──────────────────────────────────────────────────────────────
+    with col1:
+        st.title("Chat")
+        chat_container = st.container(height=950, key="chat_container", vertical_alignment="top", border=True)
+        st.session_state["chat_container"] = chat_container
+        user_question = col1.chat_input("Ask something about food waste…", width="stretch")
 
-    if user_question:
-        st.session_state["current_user_question"] = user_question
-        with st.spinner("Generating response…"):
-            try:
-                if st.session_state["API_KEY"]:
-                    st.session_state["conversation_list"].append(user_question)
-                    st.session_state["conversation"] += "\nUser: " + user_question
-                    st.session_state["rag_sources"] = []
-                    st.session_state["rag_context"] = ""
-                    st.session_state["chunk_tuples"] = []
+        if user_question:
+            st.session_state["current_user_question"] = user_question
+            with st.spinner("Generating response…"):
+                try:
+                    if st.session_state["API_KEY"]:
+                        st.session_state["conversation_list"].append(user_question)
+                        st.session_state["conversation"] += "\nUser: " + user_question
+                        st.session_state["rag_sources"] = []
+                        st.session_state["rag_context"] = ""
+                        st.session_state["chunk_tuples"] = []
 
-                    if st.session_state["uploaded_files_embeddings"] or st.session_state["files_in_context"]:
-                        st.session_state["chunk_tuples"] = rank_chunks_for_question(user_question)
-                        if st.session_state["chunk_tuples"]:
-                            for idx, tup in enumerate(st.session_state["chunk_tuples"], start=1):
-                                id_str = f"CHUNK ID # {idx}: "
-                                st.session_state["rag_context"] += id_str + tup[2]
-                                st.session_state["rag_sources"].append(tup[1] + "\n")
+                        if st.session_state["uploaded_files_embeddings"] or st.session_state["files_in_context"]:
+                            st.session_state["chunk_tuples"] = rank_chunks_for_question(user_question)
+                            if st.session_state["chunk_tuples"]:
+                                for idx, tup in enumerate(st.session_state["chunk_tuples"], start=1):
+                                    id_str = f"CHUNK ID # {idx}: "
+                                    st.session_state["rag_context"] += id_str + tup[2]
+                                    st.session_state["rag_sources"].append(tup[1] + "\n")
 
-                    st.session_state["response"] = get_response(
-                        st.session_state["conversation"],
-                        user_question,
-                        st.session_state["rag_context"],
-                    )
-                    st.session_state["response_counter"] += 1
-
-                    if st.session_state["chunk_tuples"]:
-                        st.session_state["response"] = add_sources_in_response(
-                            st.session_state["response"],
-                            st.session_state["chunk_tuples"],
-                            chat_container,
+                        st.session_state["response"] = get_response(
+                            st.session_state["conversation"],
+                            user_question,
+                            st.session_state["rag_context"],
                         )
+                        st.session_state["response_counter"] += 1
 
-                    st.session_state["conversation"] += "\nYou: " + st.session_state["response"]
-                    st.session_state["conversation_list"].append(st.session_state["response"])
-                else:
-                    st.error("Please enter your API key in the sidebar first.")
-            except Exception as e:
-                traceback.print_exc()
-                st.error(f"Something went wrong: {e}")
+                        if st.session_state["chunk_tuples"]:
+                            st.session_state["response"] = add_sources_in_response(
+                                st.session_state["response"],
+                                st.session_state["chunk_tuples"],
+                                chat_container,
+                            )
+
+                        st.session_state["conversation"] += "\nYou: " + st.session_state["response"]
+                        st.session_state["conversation_list"].append(st.session_state["response"])
+                    else:
+                        st.error("Please enter your API key in the sidebar first.")
+                except Exception as e:
+                    traceback.print_exc()
+                    st.error(f"Something went wrong: {e}")
 
 
-# ─── PDF VIEWER PANEL ────────────────────────────────────────────────────────
-with col2:
-    document_viewer()
+    # ─── PDF VIEWER PANEL ────────────────────────────────────────────────────────
+    with col2:
+        document_viewer()
 
 
 # ─── Helper functions ────────────────────────────────────────────────────────

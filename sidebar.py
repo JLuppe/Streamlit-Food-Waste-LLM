@@ -269,7 +269,7 @@ def _inject_sidebar_css():
 
 
 # ─── Main sidebar loader ──────────────────────────────────────────────────────
-def load_sidebar():
+def load_sidebar(reset=False):
     _inject_sidebar_css()
     try:
         # ── API Key ──────────────────────────────────────────────────────────
@@ -340,11 +340,12 @@ def load_sidebar():
             st.sidebar.markdown("<hr>", unsafe_allow_html=True)
 
             # ── Reset Chat ───────────────────────────────────────────────────
-            st.sidebar.button(
-                "🗑  Reset Chat History",
-                on_click=reset_conversation,
-                use_container_width=True,
-            )
+            if reset:
+                st.sidebar.button(
+                    "🗑  Reset Chat History",
+                    on_click=reset_conversation,
+                    use_container_width=True,
+                )
 
     except Exception as e:
         st.sidebar.info(f"Error in load_sidebar: {traceback.format_exc()}")

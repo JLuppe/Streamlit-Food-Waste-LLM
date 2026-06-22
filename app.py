@@ -383,7 +383,7 @@ def initialize_session_state():
 initialize_session_state()
 init_embedding_cache()
 st.session_state["_uploaded_file_buttons_rendered"] = False
-load_sidebar()
+load_sidebar(True)
 
 
 col1, col2 = st.columns(2)

@@ -482,11 +482,11 @@ if not st.session_state["API_KEY"]:
         <div class="landing-icon">🌱</div>
         <h1 class="landing-title">Food Waste Insights Tool</h1>
         <p class="landing-subtitle">
-            Ask questions, explore research, and uncover patterns in food waste data —
+            Ask questions, explore research, and uncover patterns in food waste data
             powered by RAG and your uploaded documents.
         </p>
         <div class="landing-card">
-            <p class="landing-card-label">Get started — enter your API key in the sidebar</p>
+            <p class="landing-card-label">Get started by entering your API key in the sidebar</p>
         </div>
         <div class="landing-features">
             <span class="landing-feature-chip"><span class="chip-dot"></span>RAG-powered answers</span>
